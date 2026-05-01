@@ -1,0 +1,11 @@
+# Entornos virtuales (por si acaso el otro falla)
+.venv/
+venv/
+ENV/
+
+# Python basura
+**/__pycache__/
+*.py[cod]
+
+# Configuración de IDE
+.idea/
