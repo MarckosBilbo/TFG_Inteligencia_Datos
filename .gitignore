@@ -9,3 +9,11 @@ ENV/
 
 # Configuración de IDE
 .idea/
+
+# Ignorar datos masivos y modelos pesados
+data/
+model/
+
+# Ignorar archivos del sistema
+.DS_Store
+__pycache__/
