@@ -3,3 +3,6 @@ numpy
 torch
 transformers
 tqdm
+streamlit
+plotly
+statsmodels
