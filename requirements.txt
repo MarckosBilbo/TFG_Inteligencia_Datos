@@ -5,3 +5,4 @@ transformers
 tqdm
 streamlit
 plotly
+statsmodels
