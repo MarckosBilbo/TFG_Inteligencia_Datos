@@ -14,8 +14,8 @@ from tqdm import tqdm
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Definimos las rutas de entrada y salida
-MODEL_PATH = os.path.join(BASE_DIR, "model", "cerebro_consumo_v2")  # <-- Cambia a v2 si usaste ese
-INPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "raw", "ChatGPT_Reviews.csv")  # <-- Asegúrate de que tu CSV se llama así
+MODEL_PATH = os.path.join(BASE_DIR, "model", "cerebro_consumo_v3")  # <-- Roto entre modelos (el que mas me mole)
+INPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "raw", "chatGPT_reviews.csv")  # <-- Asegúrate de que tu CSV se llama así
 OUTPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "dataset_inferido.csv")
 
 # ------------------------------------------------------------------------------
@@ -44,8 +44,21 @@ def main():
         return
 
     # C. Carga de los Datos en Bruto
+
     print(f"[-] Leyendo dataset masivo desde: {INPUT_DATA_PATH}")
     df = pd.read_csv(INPUT_DATA_PATH)
+
+    # =========================================================
+    # NUEVA CAPA DE ESTANDARIZACIÓN (MIGRACIÓN DE ESQUEMA)
+    # =========================================================
+    df.rename(columns={
+        'reviewId': 'Review Id',
+        'content': 'Review',
+        'score': 'Ratings',
+        'at': 'Review Date'
+    }, inplace=True)
+    # =========================================================
+
     total_reviews = len(df)
     print(f"[-] Total de registros a procesar: {total_reviews}")
 
