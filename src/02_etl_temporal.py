@@ -15,6 +15,7 @@ OUTPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "serie_temporal_l
 def main():
     print("🚀 Iniciando Pipeline ETL (Extracción, Transformación y Carga)...")
 
+
     # A. EXTRACCIÓN (Extract)
     print(f"[-] Leyendo dataset inferido desde: {INPUT_DATA_PATH}")
     try:
@@ -26,24 +27,27 @@ def main():
     total_inicial = len(df)
     print(f"[-] Registros iniciales cargados: {total_inicial}")
 
-    # B. TRANSFORMACIÓN (Transform) - LIMPIEZA FORENSE
-    print("[-] Aplicando reglas de Limpieza Forense...")
 
-    # 1. Eliminar filas sin fecha o sin texto
-    df = df.dropna(subset=['Review', 'Review Date'])
+    # B. TRANSFORMACIÓN (Transform) - AGRUPACIÓN TEMPORAL
+    print("[-] Procesando series temporales...")
 
-    # 2. Eliminar duplicados exactos (Filtro Anti-Bots)
-    df = df.drop_duplicates(subset=['Review'])
+    # Convertir a Fecha estándar (Año-Mes-Día) y eliminar fechas corruptas
+    df['Review Date'] = pd.to_datetime(df['Review Date'], errors='coerce').dt.date
+    df = df.dropna(subset=['Review Date'])
 
-    # 3. Eliminar reseñas de menos de 3 palabras (Ruido: "good", "nice app")
-    # Convertimos a string por si acaso, separamos por espacios y contamos
-    df['Review'] = df['Review'].astype(str)
-    df = df[df['Review'].str.split().str.len() >= 3]
+    # Agrupar por Día
+    df_temporal = df.groupby('Review Date').agg(
+        Sentimiento_Medio=('Sentimiento_IA', 'mean'),
+        Volumen_Reseñas=('Review', 'count')
+    ).reset_index()
 
-    total_limpio = len(df)
-    registros_borrados = total_inicial - total_limpio
-    print(f"[-] Limpieza completada: Se han eliminado {registros_borrados} registros (ruido/bots).")
-    print(f"[-] Registros útiles para el análisis: {total_limpio}")
+    # Ordenar cronológicamente
+    df_temporal = df_temporal.sort_values(by='Review Date')
+
+    # Opcional (pero muy recomendado para el Dashboard):
+    # Filtrar días que tengan menos de 10 reseñas (evita picos irreales en la gráfica)
+    df_temporal = df_temporal[df_temporal['Volumen_Reseñas'] >= 10]
+
 
     # C. TRANSFORMACIÓN (Transform) - AGRUPACIÓN TEMPORAL
     print("[-] Procesando series temporales...")
@@ -61,6 +65,7 @@ def main():
 
     # Ordenar cronológicamente
     df_temporal = df_temporal.sort_values(by='Review Date')
+
 
     # D. CARGA (Load)
     print(f"[-] Guardando Serie Temporal en: {OUTPUT_DATA_PATH}")

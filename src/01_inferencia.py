@@ -16,7 +16,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Definimos las rutas de entrada y salida
 MODEL_PATH = os.path.join(BASE_DIR, "model", "cerebro_consumo_v3")  # <-- Roto entre modelos (el que mas me mole)
 INPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "raw", "chatGPT_reviews.csv")  # <-- Asegúrate de que tu CSV se llama así
-OUTPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "dataset_inferido.csv")
+OUTPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "dataset_inferido2.csv")
+
 
 # ------------------------------------------------------------------------------
 # 2. PARÁMETROS DE INGENIERÍA (Hiperparámetros de ejecución)
@@ -28,9 +29,11 @@ COLUMNA_TEXTO = "Review"  # <-- IMPORTANTE: Pon aquí el nombre exacto de la col
 def main():
     print("Iniciando Motor de Inferencia Masiva...")
 
+
     # A. Detección de Hardware (GPU si está disponible, si no, CPU)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[-] Aceleración por hardware detectada: {device.type.upper()}")
+
 
     # B. Carga del "Cerebro" (Modelo y Tokenizador desde local)
     print("[-] Cargando el modelo pre-entrenado desde la carpeta local...")
@@ -43,13 +46,13 @@ def main():
         print(f" X ERROR: No se ha encontrado el modelo en {MODEL_PATH}. ¿Has descargado y pegado la carpeta ahí?")
         return
 
-    # C. Carga de los Datos en Bruto
 
+    # C. Carga de los Datos en Bruto
     print(f"[-] Leyendo dataset masivo desde: {INPUT_DATA_PATH}")
     df = pd.read_csv(INPUT_DATA_PATH)
 
     # =========================================================
-    # NUEVA CAPA DE ESTANDARIZACIÓN (MIGRACIÓN DE ESQUEMA)
+    # 1. CAPA DE ESTANDARIZACIÓN (MIGRACIÓN DE ESQUEMA)
     # =========================================================
     df.rename(columns={
         'reviewId': 'Review Id',
@@ -57,14 +60,32 @@ def main():
         'score': 'Ratings',
         'at': 'Review Date'
     }, inplace=True)
+
     # =========================================================
+    # 2. LIMPIEZA FORENSE (Igual que en Colab Celda 3.2)
+    # =========================================================
+    print("[-] Aplicando limpieza estricta (Filtro Geográfico y Longitud)...")
+    total_antes = len(df)
 
-    total_reviews = len(df)
-    print(f"[-] Total de registros a procesar: {total_reviews}")
+    # 2.1 Borramos nulos y duplicados
+    df = df.dropna(subset=['Review', 'Review Date'])
+    df = df.drop_duplicates(subset=['Review'])
 
-    # Asegurarnos de que no hay valores nulos en el texto
-    df[COLUMNA_TEXTO] = df[COLUMNA_TEXTO].fillna("").astype(str)
+    # 2.2 Filtro de Alfabeto no latino (Para que el modelo no alucine)
+    patron_no_latino = r'[\u0400-\u04FF\u0600-\u06FF\u0900-\u097F\u3040-\u30FF\u4E00-\u9FFF]'
+    df = df[~df['Review'].str.contains(patron_no_latino, na=False)]
+
+    # 2.3 Filtro de longitud (> 20 caracteres)
+    df = df[df['Review'].str.len() > 20]
+
+    total_despues = len(df)
+    print(f"[-] Limpieza finalizada. Descartados {total_antes - total_despues} registros basura/no latinos.")
+    print(f"[-] Total de registros a inferir por la IA: {total_despues}")
+
+    # Asegurarnos de que el texto es string
+    df[COLUMNA_TEXTO] = df[COLUMNA_TEXTO].astype(str)
     textos = df[COLUMNA_TEXTO].tolist()
+
 
     # D. Bucle de Inferencia por Lotes (Batching)
     predicciones = []
@@ -79,7 +100,7 @@ def main():
             lote_textos,
             padding=True,
             truncation=True,
-            max_length=128,  # Recortamos a 128 tokens por reseña para ganar velocidad
+            max_length=256,  # Recortamos a 128 tokens por reseña para ganar velocidad
             return_tensors="pt"
         ).to(device)
 
@@ -90,6 +111,7 @@ def main():
             lote_predicciones = torch.argmax(outputs.logits, dim=-1).cpu().tolist()
 
         predicciones.extend(lote_predicciones)
+
 
     # E. Transformación de salida y Guardado
     # Mapeamos los números (0, 1, 2) a las etiquetas reales (-1, 0, 1) que tenías en Colab
