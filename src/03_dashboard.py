@@ -91,7 +91,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv(os.path.join(BASE_DIR, "data", "processed", "serie_temporal_lineaA.csv"))
+    df = pd.read_csv(os.path.join(BASE_DIR, "data", "processed", "serie_temporal_lineaA2.csv"))
     df['Review Date'] = pd.to_datetime(df['Review Date'])
     df = df.rename(columns={'Review Date': 'Fecha', 'Sentimiento_Medio': 'Sentimiento', 'Volumen_Reseñas': 'Volumen'})
 
