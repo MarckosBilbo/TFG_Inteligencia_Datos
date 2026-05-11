@@ -9,7 +9,7 @@ import pandas as pd
 # ------------------------------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "dataset_inferido.csv")
-OUTPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "serie_temporal_lineaA.csv")
+OUTPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "serie_temporal_lineaA2.csv")
 
 
 def main():
