@@ -8,8 +8,8 @@ import pandas as pd
 # 1. CONFIGURACIÓN DE RUTAS
 # ------------------------------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-INPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "dataset_inferido2.csv")
-OUTPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "serie_temporal_lineaA2.csv")
+INPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "dataset_inferido2-1.csv")
+OUTPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "serie_temporal_lineaA2-1.csv")
 
 
 def main():
