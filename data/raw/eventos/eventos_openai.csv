@@ -1,11 +1,24 @@
-Fecha,Evento,Tipo
-2023-07-31,Cierre AI Classifier y Crisis 'Pereza',Incidente Técnico
-2023-08-05,Valle Crítico Histórico (Mínimo),Hito Analítico
-2023-11-06,OpenAI DevDay (Inestabilidad),Lanzamiento
-2023-11-08,Caída Global Masiva,Incidente Técnico
-2023-11-17,Despido de Sam Altman,Crisis Corporativa
-2023-11-22,Retorno de Sam Altman,Crisis Corporativa
-2024-05-13,Lanzamiento de GPT-4o (Omni),Lanzamiento
-2024-06-04,Caída Global 3 horas,Incidente Técnico
-2024-07-25,Lanzamiento de SearchGPT,Lanzamiento
-2024-08-20,Pico de Optimismo Voice Mode,Hito Analítico
+Fecha,Fecha_Fin,Evento,Tipo
+2023-07-31,2023-08-04,Cierre AI Classifier (Desencadenante de Crisis),Desencadenante
+2023-08-05,,Valle Crítico Histórico (Mínimo),Hito Analítico
+2023-11-06,,OpenAI DevDay (Inestabilidad),Lanzamiento
+2023-11-08,,Caída Global Masiva,Incidente Técnico
+2023-11-17,,Despido de Sam Altman,Crisis Corporativa
+2023-11-22,,Retorno de Sam Altman,Crisis Corporativa
+2024-03-10,,Anomalía de Servicio (Detectada por IA),Incidente Técnico
+2024-05-13,,Lanzamiento de GPT-4o (Omni),Lanzamiento
+2024-06-04,,Caída Global 3 horas,Incidente Técnico
+2024-07-25,,Lanzamiento de SearchGPT,Lanzamiento
+2024-08-20,,Pico de Optimismo Voice Mode (Máximo Histórico),Hito Clave
+2024-09-12,,Lanzamiento de o1-preview y o1-mini (Proyecto Strawberry),Lanzamiento
+2024-10-08,,Colapso de Confianza (Mínimo Histórico),Hito Clave
+2024-12-05,,Lanzamiento de OpenAI o1 y ChatGPT Pro,Lanzamiento
+2025-02-27,,Lanzamiento de GPT-4.5 (Research Preview),Lanzamiento
+2025-03-31,2025-04-8,Ronda de Financiación Récord (Valuación $157B-(Rebote)),Desencadenante
+2025-06-10,,Caída Global Simultánea (ChatGPT y Sora),Incidente Técnico
+2025-07-16,2025-07-25,Interrupción en 23 servicios (Desencadenante),Desencadenante
+2025-08-07,,Lanzamiento Oficial de GPT-5,Lanzamiento
+2025-10-28,,Conversión a Public Benefit Corporation (PBC),Crisis Corporativa
+2025-12-15,,Fallo de Enrutamiento en Suscriptores de Pago,Incidente Técnico
+2026-03-01,,Valle Crítico Post-Saturación (Mínimo de Periodo),Incidente Técnico
+2026-04-20,2026-05-01,Periodo de Inestabilidad Global y Saturación,Desencadenante
