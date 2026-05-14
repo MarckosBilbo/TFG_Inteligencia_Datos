@@ -43,7 +43,7 @@ def main():
         model.to(device)
         model.eval()  # Modo evaluación (apaga funciones de entrenamiento como el Dropout)
     except Exception as e:
-        print(f" ❌ ERROR: No se ha encontrado el modelo en {MODEL_PATH}. ¿Has descargado y pegado la carpeta ahí?")
+        print(f"- ERROR: No se ha encontrado el modelo en {MODEL_PATH}. ¿Has descargado y pegado la carpeta ahí?")
         return
 
 
@@ -71,7 +71,7 @@ def main():
     df = df.dropna(subset=['Review', 'Review Date'])
     df = df.drop_duplicates(subset=['Review'])
 
-    # 2.2 Filtro de Alfabeto no latino --> ¡ELIMINADO / COMENTADO!
+    # 2.2 Filtro de Alfabeto no latino --> (no creo que se use)
     # Al usar un modelo multilingüe, dejamos pasar Ruso, Chino, Árabe, etc.
     # patron_no_latino = r'[\u0400-\u04FF\u0600-\u06FF\u0900-\u097F\u3040-\u30FF\u4E00-\u9FFF]'
     # df = df[~df['Review'].str.contains(patron_no_latino, na=False)]

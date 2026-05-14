@@ -7,6 +7,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import os
 
+
+
 # --- 1. CONFIGURACIÓN DE ESTÉTICA AVANZADA ---
 st.set_page_config(page_title="ChatGPT Intelligence Pulse", page_icon="🧠", layout="wide",
                    initial_sidebar_state="collapsed")
@@ -38,6 +40,7 @@ st.markdown("""
     .status-box p, .status-box b, .status-box i { color: #0f172a !important; }
     </style>
     """, unsafe_allow_html=True)
+
 
 
 # --- 2. POPUP INTERACTIVO (ST.DIALOG) ---
@@ -72,16 +75,19 @@ def mostrar_detalles_evento(fecha_str, evento, tipo, color, sentimiento, volumen
     st.divider()
     if tipo == "Incidente Técnico":
         st.error(
-            "📉 **Análisis Forense:** Los incidentes técnicos provocan las caídas más bruscas y rápidas en la confianza del consumidor. El usuario penaliza severamente la falta de disponibilidad.")
+            "📉 **Análisis Forense:** Caída súbita del servicio. El usuario penaliza severamente la falta de disponibilidad en el corto plazo.")
+    elif tipo == "Desencadenante":
+        st.error(
+            "📉 **Análisis Forense (Latencia):** Evento que inicia una crisis. Empíricamente, la frustración del usuario requiere una ventana de 3 a 7 días para consolidarse como un colapso en las métricas de sentimiento.")
     elif tipo == "Crisis Corporativa":
         st.warning(
-            "⚖️ **Análisis Forense:** A pesar de la gravedad mediática, los datos demuestran que el consumidor final es altamente resiliente a los dramas de liderazgo mientras la herramienta siga funcionando.")
+            "⚖️ **Análisis Forense:** El consumidor final es altamente resiliente a los dramas de liderazgo (nivel corporativo) mientras la herramienta siga operativa.")
     elif tipo == "Lanzamiento":
         st.success(
-            "🚀 **Análisis Forense:** Los anuncios de nuevas capacidades generan picos de adopción, aunque a veces vienen seguidos de caídas temporales por saturación de servidores.")
+            "🚀 **Análisis Forense:** Los anuncios de nuevas capacidades generan picos de adopción, aunque en ocasiones saturan la red en los días posteriores.")
     else:
         st.info(
-            "📊 **Análisis Forense:** Hito estadístico significativo que marca un cambio de tendencia en el comportamiento de la comunidad de usuarios.")
+            "📊 **Análisis Forense:** Hito estadístico o corporativo significativo.")
 
 
 
@@ -97,8 +103,21 @@ def load_data():
 
     df_eventos = pd.read_csv(os.path.join(BASE_DIR, "data", "raw", "eventos", "eventos_openai.csv"))
     df_eventos['Fecha'] = pd.to_datetime(df_eventos['Fecha'])
-    color_map = {"Lanzamiento": "#10b981", "Incidente Técnico": "#f43f5e", "Crisis Corporativa": "#f59e0b",
-                 "Hito Analítico": "#8b5cf6"}
+
+    # Manejar la nueva columna Fecha_Fin (si está vacía será NaT)
+    if 'Fecha_Fin' in df_eventos.columns:
+        df_eventos['Fecha_Fin'] = pd.to_datetime(df_eventos['Fecha_Fin'], errors='coerce')
+
+    # Nuevos colores mapeados
+    color_map = {
+        "Lanzamiento": "#10b981",  # Verde
+        "Incidente Técnico": "#f43f5e",  # Rojo
+        "Desencadenante": "#f97316",  # Naranja
+        "Crisis Corporativa": "#f59e0b",  # Amarillo/Naranja
+        "Hito Clave": "#7c3aed",  # Morado Eléctrico (Para los picos/valles)
+        "Evento Corporativo": "#3b82f6",  # Azul Wall Street
+        "Hito Analítico": "#8b5cf6"  # Morado claro
+    }
     df_eventos['Color'] = df_eventos['Tipo'].map(lambda x: color_map.get(x, "#94a3b8"))
 
     # Cruzar eventos con datos reales para el gráfico
@@ -116,7 +135,7 @@ except FileNotFoundError:
 
 # --- 4. DASHBOARD UI Y KPIs ---
 st.title("🧠 ChatGPT Intelligence Pulse")
-st.markdown("Análisis forense del sentimiento del mercado y eventos disruptivos (2023-2024).")
+st.markdown("Análisis forense del sentimiento del mercado y adopción tecnológica (2023-2026).")
 
 max_day = df.loc[df['Sentimiento'].idxmax()]
 min_day = df.loc[df['Sentimiento'].idxmin()]
@@ -174,21 +193,11 @@ fig.add_trace(go.Scatter(x=df['Fecha'], y=df['Volumen'], fill='tozeroy', name='V
 fig.add_trace(go.Scatter(x=df['Fecha'], y=df['Sentimiento'], mode='lines', name='Sentimiento Medio',
                          line=dict(color='#0891b2', width=3, shape='spline'), yaxis='y1'))
 
-# Novedad: Puntos remarcados sobre la línea
-fig.add_trace(go.Scatter(
-    x=df_events['Fecha'], y=df_events['Sentimiento'],
-    mode='markers', name='Eventos Clave',
-    marker=dict(size=12, color=df_events['Color'], line=dict(width=2, color='white')),
-    yaxis='y1', hoverinfo='text', hovertext=df_events['Evento']
-))
-
-# Zona sombreada crítica
-fig.add_vrect(x0="2023-07-31", x1="2023-08-05", fillcolor="#f43f5e", opacity=0.15, layer="below", line_width=0,
-              annotation_text="Degradación Crítica", annotation_position="top left", annotation_font_color="#f43f5e")
-
-# Anotaciones con algoritmo anti-solapamiento
+# Anotaciones con algoritmo anti-solapamiento y Cajas de Sombreado Dinámicas
 alturas_ay = [-50, -100, -150, -70]  # Patrón de alturas
+
 for i, row in df_events.iterrows():
+    # 1. Añadimos el cartelito
     ay_dinamico = alturas_ay[i % len(alturas_ay)]
     fig.add_annotation(
         x=row['Fecha'], y=row['Sentimiento'], text=f"<b>{row['Evento']}</b>",
@@ -196,6 +205,25 @@ for i, row in df_events.iterrows():
         ax=0, ay=ay_dinamico, bgcolor=row['Color'], font=dict(color="white", size=10),
         borderpad=4, bordercolor=row['Color'], borderwidth=1
     )
+
+    # 2. Si el evento es multicapa (tiene Fecha_Fin), dibujamos el sombreado vertical
+    if 'Fecha_Fin' in df_events.columns and pd.notna(row['Fecha_Fin']):
+        fig.add_vrect(
+            x0=row['Fecha'],
+            x1=row['Fecha_Fin'],
+            fillcolor=row['Color'],  # Toma el color del evento (naranja)
+            opacity=0.15,
+            layer="below",
+            line_width=0
+        )
+
+# Puntos remarcados sobre la línea
+fig.add_trace(go.Scatter(
+    x=df_events['Fecha'], y=df_events['Sentimiento'],
+    mode='markers', name='Eventos Clave',
+    marker=dict(size=12, color=df_events['Color'], line=dict(width=2, color='white')),
+    yaxis='y1', hoverinfo='text', hovertext=df_events['Evento']
+))
 
 fig.update_layout(
     template="plotly_white", hovermode="x unified", height=600, margin=dict(t=30, b=30, l=50, r=50),
@@ -208,29 +236,30 @@ st.plotly_chart(fig, use_container_width=True)
 
 
 
-# --- 6. BOTONERA DE POPUPS (LA "PILLERÍA") ---
+# --- 6. BOTONERA DE POPUPS ---
 st.markdown("👆 **Analizador de Eventos:** Haz clic en un evento para abrir su autopsia estadística.")
 # Crear filas de botones dinámicamente
 cols = st.columns(5)
 for i, row in df_events.iterrows():
     with cols[i % 5]:
-        if st.button(f"🔍 {row['Fecha'].strftime('%d %b')}", key=f"btn_{i}", use_container_width=True):
+        if st.button(f"🔍 {row['Fecha'].strftime('%d %b %y')}", key=f"btn_{i}", use_container_width=True):
             mostrar_detalles_evento(
                 row['Fecha'].strftime('%d %b %Y'), row['Evento'], row['Tipo'],
                 row['Color'], row['Sentimiento'], row['Volumen'], avg_sentimiento_global
             )
 
 
-# --- 7. INSIGHTS (TEXTO ORIGINAL) ---
+
+# --- 7. INSIGHTS DEL ANÁLISIS FORENSE ---
 st.markdown("---")
 st.markdown("### 💡 Insights del Análisis Forense")
-c1, c2 = st.columns(2)
 
+c1, c2 = st.columns(2)
 with c1:
     st.markdown("""
-    <div class="status-box" style="border-left-color: #f43f5e; background-color: #fff1f2 !important;">
-        <p style="color: #0f172a !important; margin-bottom: 5px;"><b>📉 Impacto del Rendimiento Técnico:</b></p>
-        <p style="color: #334155 !important; font-size: 0.95rem; line-height: 1.5;">La zona sombreada (31 Jul - 05 Ago 2023) demuestra que <b>los incidentes técnicos son el mayor destructor de valor</b>. La retirada del <i>AI Classifier</i> y la percepción de que GPT-4 se había vuelto "perezoso" provocaron una degradación sostenida de casi una semana, hundiendo el sentimiento al mínimo histórico absoluto (0.108).</p>
+    <div class="status-box" style="border-left-color: #f97316; background-color: #fff7ed !important;">
+        <p style="color: #0f172a !important; margin-bottom: 5px;"><b>📉 El Fenómeno del "Sentiment Lag" (Latencia):</b></p>
+        <p style="color: #334155 !important; font-size: 0.95rem; line-height: 1.5;">Las crisis técnicas no se reflejan instantáneamente. Un evento desencadenante genera una <b>ventana de degradación de 3 a 7 días</b> hasta que la masa crítica de frustración indexa el sentimiento en su punto más bajo (Valle Crítico).</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -238,65 +267,152 @@ with c2:
     st.markdown("""
     <div class="status-box" style="border-left-color: #f59e0b; background-color: #fffbeb !important;">
         <p style="color: #0f172a !important; margin-bottom: 5px;"><b>🛡️ La Inmunidad al Drama Corporativo:</b></p>
-        <p style="color: #334155 !important; font-size: 0.95rem; line-height: 1.5;">A diferencia de los fallos técnicos, los datos revelan que <b>el consumidor final es resiliente a las crisis de liderazgo</b>. Durante el despido y retorno de Sam Altman (17-22 Nov), el sentimiento apenas descendió a valores neutros (0.49), demostrando que la opinión pública valora la utilidad del producto muy por encima de la inestabilidad directiva.</p>
+        <p style="color: #334155 !important; font-size: 0.95rem; line-height: 1.5;">A diferencia de los fallos técnicos, los datos revelan que <b>el consumidor final es resiliente a las crisis de liderazgo</b>. El núcleo de usuarios valora la utilidad estricta del producto, penalizándolo severamente únicamente cuando la disponibilidad técnica colapsa.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+c3, c4 = st.columns(2)
+
+with c3:
+    st.markdown("""
+    <div class="status-box" style="border-left-color: #7c3aed; background-color: #f5f3ff !important;">
+        <p style="color: #0f172a !important; margin-bottom: 5px;"><b>🏆 Máximo Histórico (Pico de Optimismo):</b></p>
+        <p style="color: #334155 !important; font-size: 0.95rem; line-height: 1.5;">Registrado el 20 de Ago de 2024. Coincide con el despliegue del <i>Advanced Voice Mode</i>. Empíricamente, es el momento en el que el modelo <b>supera la barrera de la utilidad algorítmica para generar empatía</b> real en la comunidad, disparando el sentimiento positivo a niveles sin precedentes.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+with c4:
+    st.markdown("""
+    <div class="status-box" style="border-left-color: #ef4444; background-color: #fef2f2 !important;">
+        <p style="color: #0f172a !important; margin-bottom: 5px;"><b>⚠️ Mínimo Histórico (Anomalía Detectada):</b></p>
+        <p style="color: #334155 !important; font-size: 0.95rem; line-height: 1.5;">Registrado el 8 de Oct de 2024. La IA detectó el <b>colapso de confianza más severo del dataset (-0.14)</b>, sin que mediara un comunicado oficial corporativo. Esto sugiere un fallo profundo de base de datos o un ajuste agresivo en los filtros (censura) que castigó la experiencia de usuario real.</p>
     </div>
     """, unsafe_allow_html=True)
 
 
 
-# --- 8. POPUPS PARA GRÁFICAS INFERIORES ---
-@st.dialog("📚 Explicación: Sentimiento por Tipo")
-def popup_barras():
-    st.markdown("### Clasificación Histórica")
-    st.write(
-        "Este gráfico agrupa los datos de todo el año basándose en el calendario de eventos de la **Línea B**. Demuestra empíricamente que los incidentes técnicos (en rojo) generan un impacto negativo desproporcionado en la percepción del usuario, mientras que los lanzamientos y la operativa normal mantienen promedios estables de aprobación superior al 53%.")
-
-
-@st.dialog("📚 Explicación: Volumen vs Sentimiento")
-def popup_scatter():
-    st.markdown("### Análisis de Dispersión y Tendencia")
-    st.write(
-        "Muestra la correlación entre la cantidad de reseñas diarias (eje X) y el nivel de satisfacción (eje Y). La línea de regresión (Lowess) en rojo evidencia un patrón interesante: **los picos anómalos de volumen suelen estar asociados a caídas drásticas de sentimiento**, lo que confirma que el usuario medio acude masivamente a las tiendas de aplicaciones principalmente cuando el servicio falla.")
-
-
-
-# --- 9. CORRELACIÓN Y CATEGORÍAS (GRÁFICOS MEJORADOS) ---
+# --- 8. ANÁLISIS DE CATEGORÍAS (BARRAS Y SALUD) ---
 st.write("---")
 row2_1, row2_2 = st.columns([1, 1])
 
 with row2_1:
-    col_tit1, col_btn1 = st.columns([0.85, 0.15])
-    with col_tit1: st.subheader("🏆 Sentimiento por Evento")
-    with col_btn1:
-        if st.button("ℹ️ Info", key="btn_info_bar", use_container_width=True): popup_barras()
-
-    # Preparación de datos para barras
+    st.subheader("📊 Sentimiento por Categoría Base")
+    # Filtrado estricto para mostrar solo las categorías con sentido promediable
     df_merged = df.merge(df_events[['Fecha', 'Tipo']], on='Fecha', how='left')
     df_merged['Tipo'] = df_merged['Tipo'].fillna('Día Normal')
-    cat_avg = df_merged.groupby('Tipo')['Sentimiento'].mean().sort_values().reset_index()
+    tipos_permitidos = ['Lanzamiento', 'Incidente Técnico', 'Crisis Corporativa', 'Día Normal']
+
+    df_filtrado = df_merged[df_merged['Tipo'].isin(tipos_permitidos)]
+    cat_avg = df_filtrado.groupby('Tipo')['Sentimiento'].mean().sort_values().reset_index()
 
     fig_bar = px.bar(
         cat_avg, x='Sentimiento', y='Tipo', orientation='h',
         color='Tipo', color_discrete_map={
             'Lanzamiento': '#10b981', 'Crisis Corporativa': '#f59e0b',
-            'Incidente Técnico': '#f43f5e', 'Hito Analítico': '#8b5cf6', 'Día Normal': '#94a3b8'
+            'Incidente Técnico': '#f43f5e', 'Día Normal': '#94a3b8'
         }, text_auto='.3f'
     )
-    fig_bar.update_layout(showlegend=False, height=380, template="plotly_white", margin=dict(l=10, r=20, t=10, b=20))
+    fig_bar.update_layout(showlegend=False, height=350, template="plotly_white", margin=dict(l=10, r=20, t=10, b=20))
     st.plotly_chart(fig_bar, use_container_width=True)
 
 with row2_2:
-    col_tit2, col_btn2 = st.columns([0.85, 0.15])
-    with col_tit2: st.subheader("🎯 Volumen vs Sentimiento")
-    with col_btn2:
-        if st.button("ℹ️ Info", key="btn_info_scat", use_container_width=True): popup_scatter()
+    st.subheader("🍩 Distribución de Salud del Producto")
 
+
+    # Categorizamos los días según su sentimiento global
+    def clasificar_salud(s):
+        if s >= 0.55:
+            return 'Óptima (>= 0.55)'
+        elif s >= 0.40:
+            return 'Estable (0.40 - 0.54)'
+        else:
+            return 'Crítica (< 0.40)'
+
+
+    df['Estado_Salud'] = df['Sentimiento'].apply(clasificar_salud)
+    salud_counts = df['Estado_Salud'].value_counts().reset_index()
+    salud_counts.columns = ['Estado', 'Días']
+
+    fig_pie = px.pie(
+        salud_counts, values='Días', names='Estado', hole=0.5,
+        color='Estado', color_discrete_map={
+            'Óptima (>= 0.55)': '#10b981',
+            'Estable (0.40 - 0.54)': '#94a3b8',
+            'Crítica (< 0.40)': '#f43f5e'
+        }
+    )
+    fig_pie.update_traces(textposition='inside', textinfo='percent+label')
+    fig_pie.update_layout(showlegend=False, height=350, template="plotly_white", margin=dict(l=10, r=20, t=10, b=20))
+    st.plotly_chart(fig_pie, use_container_width=True)
+
+
+
+# --- 9. ANÁLISIS DE EVOLUCIÓN Y TENDENCIAS ---
+st.write("---")
+row3_1, row3_2 = st.columns([1, 1])
+
+with row3_1:
+    st.subheader("📈 Evolución Diaria (Desencadenantes)")
+
+    # Filtramos solo los eventos de tipo Desencadenante
+    df_des = df_events[df_events['Tipo'] == 'Desencadenante'].copy()
+
+    if not df_des.empty and 'Fecha_Fin' in df_des.columns:
+        # Extraemos un nombre corto para las pestañas (quitamos lo que hay entre paréntesis)
+        tab_names = [evento.split('(')[0].strip() for evento in df_des['Evento']]
+
+        # Creamos las pestañas interactivas de Streamlit
+        tabs = st.tabs(tab_names)
+
+        for i, row in df_des.reset_index().iterrows():
+            with tabs[i]:
+                # Filtramos el dataframe original para sacar todos los días de esta ventana
+                mask = (df['Fecha'] >= row['Fecha']) & (df['Fecha'] <= row['Fecha_Fin'])
+                df_window = df[mask]
+
+                if not df_window.empty:
+                    # Determinamos si la tendencia general fue subir o bajar para colorear la línea
+                    sent_inicio = df_window.iloc[0]['Sentimiento']
+                    sent_fin = df_window.iloc[-1]['Sentimiento']
+                    color_linea = "#10b981" if sent_fin >= sent_inicio else "#f43f5e"
+
+                    # Dibujamos la gráfica de línea día a día
+                    fig_line = px.line(
+                        df_window, x="Fecha", y="Sentimiento",
+                        markers=True, hover_data={"Fecha": "|%d %b %Y", "Sentimiento": ":.3f"}
+                    )
+
+                    fig_line.update_traces(
+                        line_color=color_linea,
+                        line_width=3,
+                        marker=dict(size=8, color='white', line=dict(width=2, color=color_linea))
+                    )
+
+                    # Ajustamos el rango del eje Y dinámicamente para que se vea bien el desnivel
+                    y_min = df_window['Sentimiento'].min() - 0.05
+                    y_max = df_window['Sentimiento'].max() + 0.05
+
+                    fig_line.update_layout(
+                        height=330, template="plotly_white", margin=dict(l=10, r=20, t=20, b=20),
+                        xaxis=dict(title="", showgrid=False, tickformat="%d %b"),
+                        yaxis=dict(title="<b>Sentimiento</b>", range=[y_min, y_max], gridcolor="#f1f5f9")
+                    )
+                    st.plotly_chart(fig_line, use_container_width=True)
+                else:
+                    st.warning("Datos no disponibles para este periodo.")
+    else:
+        st.info("No hay eventos con Fecha_Fin configurada para mostrar esta gráfica.")
+
+with row3_2:
+    st.subheader("🎯 Volumen vs Sentimiento General")
     fig_scat = px.scatter(
         df, x="Volumen", y="Sentimiento", color="Sentimiento",
         color_continuous_scale="Viridis", trendline="lowess", trendline_color_override="#f43f5e"
     )
-    fig_scat.update_layout(height=380, template="plotly_white", margin=dict(l=10, r=20, t=10, b=20))
+    fig_scat.update_layout(height=400, template="plotly_white", margin=dict(l=10, r=20, t=20, b=20))
     st.plotly_chart(fig_scat, use_container_width=True)
 
-st.markdown("<br><center><small>Validación de Datos v3.0 | Pipeline de Inteligencia Híbrida</small></center>",
-            unsafe_allow_html=True)
+st.markdown(
+    "<br><center><small>Validación de Datos v4.0 | Pipeline de Inteligencia Híbrida | Trabajo de Fin de Grado</small></center>",
+    unsafe_allow_html=True)
