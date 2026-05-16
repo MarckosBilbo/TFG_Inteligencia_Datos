@@ -6,9 +6,9 @@ Proyecto de Inteligencia de Datos y Machine Learning (TFG) diseñado para analiz
 
 El proyecto se divide en tres fases estratégicas:
 
-* **Fase 1: El "Cerebro" (Cloud / Google Colab).** Fine-Tuning de un modelo Transformer (`Twitter-RoBERTa`) con 15.000 registros balanceados para la detección precisa del sentimiento (Negativo, Neutro, Positivo).
-* **Fase 2: La "Máquina" (Local / PyCharm).** Inferencia masiva sobre +190.000 reseñas utilizando el modelo persistido. Pipeline ETL para aplicar limpieza forense (filtros anti-bots) y generar la serie temporal (Línea A).
-* **Fase 3: El "Escaparate" (Dashboard).** Correlación de la Línea A con eventos históricos de OpenAI mediante un Dashboard interactivo de Business Intelligence.
+* **Fase 1: El "Cerebro" (Cloud / Google Colab).** Ajuste fino (*Fine-Tuning*) de un modelo Transformer multilingüe (`XLM-RoBERTa`) utilizando una muestra estratificada de 45.000 registros (15.000 por clase). Esta arquitectura permite una detección de sentimiento (Negativo, Neutro, Positivo) precisa y a escala global, eliminando las barreras idiomáticas.
+* **Fase 2: La "Máquina" (Local / PyCharm).** Inferencia masiva sobre un dataset inicial de **+1.000.000 de reseñas**. Implementación de un pipeline ETL avanzado para aplicar una limpieza forense estricta (filtros anti-bots y control de ruido), reteniendo ~350.000 opiniones humanas genuinas con las que se genera la serie temporal estadísticamente validada (Línea A).
+* **Fase 3: El "Escaparate" (Dashboard).** Correlación de la Línea A con eventos históricos de OpenAI (2023-2026) mediante un Dashboard de Business Intelligence. El sistema audita fenómenos complejos como el "Sentiment Lag" (latencia ante incidentes técnicos) y la resiliencia del consumidor ante crisis corporativas.
 
 ## 📂 Estructura del Repositorio local
 * `/src`: Scripts ejecutables de inferencia, ETL y visualización.
