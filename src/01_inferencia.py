@@ -14,7 +14,7 @@ from tqdm import tqdm
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Definimos las rutas de entrada y salida
-MODEL_PATH = os.path.join(BASE_DIR, "model", "cerebro_consumo_v4")  # <-- Asegúrate de apuntar a la carpeta del modelo XLM
+MODEL_PATH = os.path.join(BASE_DIR, "model", "cerebro_consumo_v4")  # <-- Apuntamos a la carpeta del modelo XLM
 INPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "raw", "chatGPT_reviews2.csv")
 OUTPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "dataset_inferido2-1.csv")
 
@@ -23,7 +23,7 @@ OUTPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "dataset_inferido
 # 2. PARÁMETROS DE INGENIERÍA (Hiperparámetros de ejecución)
 # ------------------------------------------------------------------------------
 BATCH_SIZE = 64  # Procesaremos las reseñas de 64 en 64 para no saturar la RAM
-COLUMNA_TEXTO = "Review"  # <-- IMPORTANTE: Pon aquí el nombre exacto de la columna que tiene el texto en tu CSV original
+COLUMNA_TEXTO = "Review"  # <-- Ponemos (importante) el nombre exacto de la columna que tiene el texto en nuestro CSV original (para respetar la equivalencia)
 
 
 def main():
@@ -71,7 +71,7 @@ def main():
     df = df.dropna(subset=['Review', 'Review Date'])
     df = df.drop_duplicates(subset=['Review'])
 
-    # 2.2 Filtro de Alfabeto no latino --> (no creo que se use)
+    # 2.2 Filtro de Alfabeto no latino --> (OJO, No lo usamos, pero lo dejamos como prueba de progreso)
     # Al usar un modelo multilingüe, dejamos pasar Ruso, Chino, Árabe, etc.
     # patron_no_latino = r'[\u0400-\u04FF\u0600-\u06FF\u0900-\u097F\u3040-\u30FF\u4E00-\u9FFF]'
     # df = df[~df['Review'].str.contains(patron_no_latino, na=False)]
@@ -121,7 +121,7 @@ def main():
     print(f"[-] Inferencia completada. Guardando resultados en: {OUTPUT_DATA_PATH}")
     df.to_csv(OUTPUT_DATA_PATH, index=False)
 
-    print(" ✅ ¡PROCESO FINALIZADO! La 'Máquina' ha hecho su trabajo.")
+    print(" ¡PROCESO FINALIZADO! La 'Máquina' ha hecho su trabajo.")
 
 
 if __name__ == "__main__":
