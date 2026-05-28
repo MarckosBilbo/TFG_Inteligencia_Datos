@@ -14,9 +14,10 @@ from tqdm import tqdm
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Definimos las rutas de entrada y salida
-MODEL_PATH = os.path.join(BASE_DIR, "model", "cerebro_consumo_v4")  # <-- Apuntamos a la carpeta del modelo XLM
+MODEL_PATH = os.path.join(BASE_DIR, "model", "cerebro_consumo_v4")  # <-- Apuntamos a la carpeta del modelo XLM(escogemos el modelo que queramos 'usar')
 INPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "raw", "chatGPT_reviews2.csv")
 OUTPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "dataset_inferido2-1.csv")
+
 
 
 # ------------------------------------------------------------------------------
@@ -34,6 +35,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[-] Aceleración por hardware detectada: {device.type.upper()}")
 
+    
 
     # B. Carga del "Cerebro" (Modelo y Tokenizador desde local)
     print("[-] Cargando el modelo pre-entrenado desde la carpeta local...")
@@ -46,13 +48,15 @@ def main():
         print(f"- ERROR: No se ha encontrado el modelo en {MODEL_PATH}. ¿Has descargado y pegado la carpeta ahí?")
         return
 
+    
 
     # C. Carga de los Datos en Bruto
     print(f"[-] Leyendo dataset masivo desde: {INPUT_DATA_PATH}")
     df = pd.read_csv(INPUT_DATA_PATH)
 
+    
     # =========================================================
-    # 1. CAPA DE ESTANDARIZACIÓN (MIGRACIÓN DE ESQUEMA)
+    # C1. CAPA DE ESTANDARIZACIÓN (MIGRACIÓN DE ESQUEMA)
     # =========================================================
     df.rename(columns={
         'reviewId': 'Review Id',
@@ -61,8 +65,9 @@ def main():
         'at': 'Review Date'
     }, inplace=True)
 
+    
     # =========================================================
-    # 2. LIMPIEZA FORENSE (Adaptada a XLM-RoBERTa Multilingüe)
+    # C2. LIMPIEZA FORENSE (Adaptada a XLM-RoBERTa Multilingüe)
     # =========================================================
     print("[-] Aplicando limpieza estricta (Nulos, Duplicados y Longitud)...")
     total_antes = len(df)
@@ -87,6 +92,7 @@ def main():
     df[COLUMNA_TEXTO] = df[COLUMNA_TEXTO].astype(str)
     textos = df[COLUMNA_TEXTO].tolist()
 
+    
 
     # D. Bucle de Inferencia por Lotes (Batching)
     predicciones = []
@@ -96,7 +102,7 @@ def main():
     for i in tqdm(range(0, len(textos), BATCH_SIZE), desc="Procesando batches"):
         lote_textos = textos[i:i + BATCH_SIZE]
 
-        # 1. Tokenización matemática
+        # D1. Tokenización matemática
         inputs = tokenizer(
             lote_textos,
             padding=True,
@@ -105,7 +111,7 @@ def main():
             return_tensors="pt"
         ).to(device)
 
-        # 2. Inferencia estéril (torch.no_grad() evita fugas de memoria RAM)
+        # D2. Inferencia estéril (torch.no_grad() evita fugas de memoria RAM)
         with torch.no_grad():
             outputs = model(**inputs)
             # Extraemos la clase ganadora de las probabilidades
@@ -113,6 +119,8 @@ def main():
 
         predicciones.extend(lote_predicciones)
 
+
+    
     # E. Transformación de salida y Guardado
     # XLM-RoBERTa mantiene la estructura de índices: 0 (Negativo), 1 (Neutro), 2 (Positivo)
     mapa_sentimiento = {0: -1, 1: 0, 2: 1}
