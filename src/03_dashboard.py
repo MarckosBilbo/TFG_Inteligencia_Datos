@@ -1,5 +1,5 @@
 # ==============================================================================
-# SCRIPT 03: DASHBOARD FORENSE DE SENTIMIENTO (VERSIÓN PRO VIBRANTE)
+# SCRIPT 03: DASHBOARD FORENSE DE SENTIMIENTO [FRONT-END]
 # ==============================================================================
 import streamlit as st
 import pandas as pd
