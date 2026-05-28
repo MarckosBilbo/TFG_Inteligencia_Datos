@@ -13,19 +13,23 @@ OUTPUT_DATA_PATH = os.path.join(BASE_DIR, "data", "processed", "serie_temporal_l
 
 
 def main():
-    print("🚀 Iniciando Pipeline ETL (Extracción, Transformación y Carga)...")
+    print(" Iniciando Pipeline ETL (Extracción, Transformación y Carga)...")
 
+
+    
     # A. EXTRACCIÓN (Extract)
     print(f"[-] Leyendo dataset inferido desde: {INPUT_DATA_PATH}")
     try:
         df = pd.read_csv(INPUT_DATA_PATH)
     except FileNotFoundError:
-        print(f" ❌ ERROR: No se encuentra el archivo {INPUT_DATA_PATH}. ¿Terminó el Script 01?")
+        print(f" ERROR: No se encuentra el archivo {INPUT_DATA_PATH}. ¿Terminó el Script 01?")
         return
 
     total_inicial = len(df)
     print(f"[-] Registros iniciales cargados: {total_inicial}")
 
+
+    
     # B. TRANSFORMACIÓN (Transform) - AGRUPACIÓN TEMPORAL
     print("[-] Procesando series temporales...")
 
@@ -42,6 +46,8 @@ def main():
     # 3. Ordenar cronológicamente
     df_temporal = df_temporal.sort_values(by='Review Date')
 
+
+    
     # =====================================================================
     # C. FILTRO ANTI-RUIDO (EL "TRUNCADO")
     # =====================================================================
@@ -57,11 +63,13 @@ def main():
         f"[-] Limpieza de ruido: Se han truncado {dias_antes - dias_despues} días por falta de volumen (< {UMBRAL_RESEÑAS} reseñas).")
     # =====================================================================
 
+
+    
     # D. CARGA (Load)
     print(f"[-] Guardando Serie Temporal en: {OUTPUT_DATA_PATH}")
     df_temporal.to_csv(OUTPUT_DATA_PATH, index=False)
 
-    print("✅ ¡PIPELINE ETL FINALIZADO! La curva de sentimiento real está lista.")
+    print(" ¡PIPELINE ETL FINALIZADO! La curva de sentimiento real está lista.")
 
 
 if __name__ == "__main__":
