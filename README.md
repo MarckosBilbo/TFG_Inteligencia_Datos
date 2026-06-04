@@ -2,7 +2,7 @@
 
 Proyecto de Inteligencia de Datos y Machine Learning (TFG) diseñado para analizar la evolución del sentimiento público hacia ChatGPT mediante inferencia masiva y correlación de eventos.
 
-Marcos García Benito.
+Autor: Marcos García Benito.
 
 ## 🏗️ Arquitectura del Proyecto (Híbrida)
 
