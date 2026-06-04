@@ -1,6 +1,7 @@
 # 📊 Análisis Forense de Sentimiento: OpenAI y ChatGPT
 
 Proyecto de Inteligencia de Datos y Machine Learning (TFG) diseñado para analizar la evolución del sentimiento público hacia ChatGPT mediante inferencia masiva y correlación de eventos.
+Marcos García Benito.
 
 ## 🏗️ Arquitectura del Proyecto (Híbrida)
 
@@ -55,4 +56,4 @@ Si deseas ver directamente los resultados y la interfaz interactiva sin necesida
    `streamlit run src/03_dashboard.py`
 5. El *Dashboard* interactivo se abrirá automáticamente en tu navegador.
 
-OJO : Para el flujo completo pidele al dueño el repo completo (Para evaluación academica en la entrega final del TFG)
+OJO : Para el flujo completo pidele al dueño el repo completo (Para evaluación académica en la entrega final del TFG)
