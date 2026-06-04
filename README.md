@@ -38,3 +38,21 @@ TFG_Inteligencia_Datos/
 ├── .gitignore                  # Reglas de exclusión de seguridad
 ├── README.md                   # Documentación del proyecto
 └── requirements.txt            # Dependencias del entorno virtual
+
+````
+
+## 🚀 Manual de Uso y Ejecución
+
+Para facilitar la evaluación de este proyecto, el repositorio está preparado para ejecutarse en dos modalidades diferentes:
+
+### Despliegue Rápido (Solo Visualización del Dashboard)
+Si deseas ver directamente los resultados y la interfaz interactiva sin necesidad de descargar el modelo masivo ni procesar los datos en bruto, sigue estos pasos:
+
+1. Clona este repositorio y crea un entorno virtual.
+2. Instala las dependencias: `pip install -r requirements.txt`
+3. En la carpeta `data/processed/` y `data/raw/eventos/` ya se incluyen los CSV finales (`serie_temporal_lineaA.csv` y `eventos_openai.csv`) de peso ligero.
+4. Levanta el servidor local ejecutando:
+   `streamlit run src/03_dashboard.py`
+5. El *Dashboard* interactivo se abrirá automáticamente en tu navegador.
+
+OJO : Para el flujo completo pidele al dueño el repo completo (Para evaluación academica en la entrega final del TFG)
